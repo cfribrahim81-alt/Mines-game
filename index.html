@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mines Pro - Final Version</title>
+    <title>Mines Pro - Updated Multiplier</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { background-color: #0b111b; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         .grid-cell {
@@ -91,6 +92,12 @@
     </div>
 
     <script>
+        // Telegram Setup
+        if(window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+        }
+
         // DATA VƏ YADDAŞDAN OXUMA
         let balance = parseFloat(localStorage.getItem('mines_balance')) || 0;
         let usedCodes = JSON.parse(localStorage.getItem('mines_used_codes')) || [];
@@ -100,7 +107,7 @@
         let bombs = [];
         let revealed = 0;
         let currentBet = 0;
-        const LIMIT_MS = 5 * 60 * 60 * 1000; // 5 saat
+        const LIMIT_MS = 5 * 60 * 60 * 1000; 
 
         // Kodlar
         const codes3AZN = ["020374", "097896", "768152", "992441", "456073", "223985", "717245", "678993"];
@@ -153,7 +160,6 @@
 
             if (usedCodes.includes(code)) { showNotify("Bu kod istifadə edilib!", "red", 3000); return; }
 
-            // Yeni giriş kodu bura əlavə edildi
             if (code === "2025202620272win") addedAmount = 100;
             else if (codes3AZN.includes(code)) addedAmount = 3;
             else if (codes5AZN.includes(code)) addedAmount = 5;
@@ -169,7 +175,7 @@
                 document.getElementById('go-to-game').classList.remove('hidden');
 
                 showNotify(`Balans +${addedAmount} AZN artırıldı!`, "green", 3000, () => {
-                    showNotify("Bu kod 5 saatlıq müddət içində aktivdir. 5 saatdan sonra balans avtomatik sıfırlanacaq.", "blue", 10000);
+                    showNotify("Bu kod 5 saatlıq müddət içində aktivdir.", "blue", 10000);
                 });
             } else { showNotify("Yanlış kod daxil edildi!", "red", 3000); }
         }
@@ -232,7 +238,8 @@
                 cells[idx].innerHTML = '<div class="gem"></div>';
                 cells[idx].style.background = "#1d3a3a";
                 revealed++;
-                let m = 0.89 + (revealed - 1) * 0.095;
+                // Yenilənmiş əmsal: 0.872 + artım
+                let m = 0.872 + (revealed - 1) * 0.095;
                 document.getElementById('mult-val').innerText = `x${m.toFixed(3)}`;
                 document.getElementById('action-btn').innerText = `CASHOUT (${(currentBet * m).toFixed(2)})`;
             }
@@ -241,7 +248,7 @@
         function handleAction() { if (!isGameActive) start(); else cashout(); }
 
         function cashout() {
-            let m = 0.89 + (revealed - 1) * 0.095;
+            let m = 0.872 + (revealed - 1) * 0.095;
             balance += currentBet * m;
             saveToStorage();
             endGame(true);
