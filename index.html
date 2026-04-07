@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mines Pro - Verified Final</title>
+    <title>Mines Pro - Final Version</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -47,40 +47,43 @@
     </div>
 
     <div id="login-screen" class="w-full max-w-xs p-6 bg-[#161d2a] rounded-2xl border border-gray-800 text-center">
-        <h2 class="text-2xl font-bold mb-6 text-blue-400">MALIYYƏ PANELI</h2>
-        <input id="access-code" type="text" placeholder="Kod daxil edin" class="w-full bg-[#0b111b] p-4 rounded-xl border border-gray-700 outline-none mb-4 text-center uppercase">
+        <h2 class="text-2xl font-bold mb-6 text-blue-400 uppercase tracking-tighter">Maliyyə Paneli</h2>
+        <input id="access-code" type="text" placeholder="Kod daxil edin" class="w-full bg-[#0b111b] p-4 rounded-xl border border-gray-700 outline-none mb-4 text-center text-white uppercase">
         <button onclick="checkCode()" class="w-full bg-blue-600 py-3 rounded-xl font-bold uppercase mb-2">Təsdiqlə</button>
         <button id="go-to-game" onclick="toggleScreens()" class="hidden w-full bg-gray-700 py-3 rounded-xl font-bold uppercase">Oyuna Qayıt</button>
     </div>
 
     <div id="game-screen" class="hidden-screen w-full max-w-xs flex flex-col items-center p-4">
         <div class="w-full bg-[#161d2a] p-4 rounded-xl border border-gray-800 mb-4">
-            <div class="flex justify-between items-center mb-1"><span class="text-[10px] text-gray-500">MULTİPLIER</span> <span id="mult-val" class="text-green-400 font-bold">x0.00</span></div>
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-[10px] text-gray-500 uppercase tracking-widest">Aktiv Balans</span> 
+                <span id="mult-val" class="text-green-400 font-bold text-sm">x0.00</span>
+            </div>
             <div class="flex justify-between items-center">
                 <span id="balans-val" class="text-xl font-bold text-yellow-500">0.00 AZN</span>
                 <div class="flex gap-2">
-                    <button onclick="toggleScreens()" class="bg-blue-600/20 text-blue-400 px-3 py-1 rounded text-[10px] border border-blue-600/30">ARTIR</button>
-                    <button onclick="openWithdraw()" class="bg-green-600/20 text-green-400 px-3 py-1 rounded text-[10px] border border-green-600/30">ÇIXARIŞ</button>
+                    <button onclick="toggleScreens()" class="bg-blue-600/20 text-blue-400 px-3 py-1 rounded-lg text-[10px] font-bold border border-blue-600/30 uppercase">Artır +</button>
+                    <button onclick="openWithdraw()" class="bg-green-600/20 text-green-400 px-3 py-1 rounded-lg text-[10px] font-bold border border-green-600/30 uppercase">Çıxarış</button>
                 </div>
             </div>
         </div>
 
-        <div id="board" class="grid grid-cols-5 gap-2 w-full bg-[#161d2a] p-3 rounded-2xl mb-4"></div>
+        <div id="board" class="grid grid-cols-5 gap-2 w-full bg-[#161d2a] p-3 rounded-2xl mb-4 shadow-inner"></div>
 
         <div class="w-full space-y-3">
             <div class="relative">
-                <input id="bet-input" type="number" step="0.1" value="0.4" class="w-full bg-[#1a2332] p-4 rounded-xl border border-gray-700 outline-none">
+                <input id="bet-input" type="number" step="0.1" value="0.4" class="w-full bg-[#1a2332] p-4 rounded-xl border border-gray-700 outline-none text-lg">
                 <div class="absolute right-2 top-2 flex gap-1">
-                    <button onclick="setBet('min')" class="bg-[#2d384a] p-2 rounded text-[10px]">MIN</button>
-                    <button onclick="setBet('max')" class="bg-[#2d384a] p-2 rounded text-[10px]">MAX</button>
+                    <button onclick="setBet('min')" class="bg-[#2d384a] px-2 py-2 rounded text-[10px] font-bold text-gray-300">MIN</button>
+                    <button onclick="setBet('max')" class="bg-[#2d384a] px-2 py-2 rounded text-[10px] font-bold text-gray-300">MAX</button>
                 </div>
             </div>
-            <select id="bomb-count" class="w-full bg-[#1a2332] p-4 rounded-xl border border-gray-700 outline-none">
+            <select id="bomb-count" class="w-full bg-[#1a2332] p-4 rounded-xl border border-gray-700 outline-none text-gray-300">
                 <option value="3" selected>3 BOMBA</option>
                 <option value="5">5 BOMBA</option>
                 <option value="10">10 BOMBA</option>
             </select>
-            <button id="action-btn" onclick="handleAction()" class="w-full bg-blue-600 py-4 rounded-xl font-bold text-lg uppercase tracking-widest">Mərc Et</button>
+            <button id="action-btn" onclick="handleAction()" class="w-full bg-blue-600 py-4 rounded-xl font-extrabold text-lg active:scale-95 transition uppercase tracking-widest">Mərc Et</button>
         </div>
     </div>
 
@@ -127,26 +130,25 @@
         function checkCode() {
             const input = document.getElementById('access-code');
             const code = input.value.trim();
-            if (usedCodes.includes(code)) return showNotify("Kod istifadə edilib!", "red", 2000);
+            if (usedCodes.includes(code)) return showNotify("Bu kod istifadə edilib!", "red", 2000);
 
             let amount = 0;
             if (code === "2025202620272win") amount = 100;
-            // Digər kodlar bura əlavə oluna bilər
 
             if (amount > 0) {
                 balance += amount; usedCodes.push(code);
                 if(!startTime) startTime = Date.now();
                 save(); updateUI();
                 document.getElementById('go-to-game').classList.remove('hidden');
-                showNotify(`Balans +${amount} AZN!`, "green", 3000);
+                showNotify(`Balans +${amount} AZN artırıldı!`, "green", 3000);
                 input.value = "";
-            } else { showNotify("Yanlış kod!", "red", 2000); }
+            } else { showNotify("Yanlış kod daxil edildi!", "red", 2000); }
         }
 
         function toggleScreens() {
             document.getElementById('login-screen').classList.toggle('hidden-screen');
             document.getElementById('game-screen').classList.toggle('hidden-screen');
-            initBoard();
+            if (!document.getElementById('game-screen').classList.contains('hidden-screen')) initBoard();
         }
 
         function initBoard() {
@@ -160,7 +162,7 @@
 
         function start() {
             currentBet = parseFloat(document.getElementById('bet-input').value);
-            if (currentBet < 0.4 || currentBet > balance) return showNotify("Limit xətası!", "red", 2000);
+            if (currentBet < 0.4 || currentBet > balance) return showNotify("Limit və ya balans xətası!", "red", 2000);
             
             balance -= currentBet; save();
             isGameActive = true; revealed = 0; bombs = [];
@@ -172,15 +174,15 @@
             updateUI(); initBoard();
             const btn = document.getElementById('action-btn');
             btn.innerText = "CASHOUT (0.00)";
-            btn.className = "w-full bg-green-600 py-4 rounded-xl font-bold text-lg uppercase";
+            btn.className = "w-full bg-green-600 py-4 rounded-xl font-extrabold text-lg active:scale-95 uppercase";
         }
 
         function calcMult(rev) {
-            // Sənin istədiyin Hard Mode: Yalnız 4-cü almazdan sonra 1.05x olur
+            if (rev === 0) return 0;
             if (rev === 1) return 0.872;
             if (rev === 2) return 0.925;
             if (rev === 3) return 0.988;
-            if (rev === 4) return 1.052; // 4-cü almazda xeyrə keçir
+            if (rev === 4) return 1.052; // Məhz burada 1.05-i keçir
             return 1.052 + (rev - 4) * 0.15;
         }
 
@@ -191,9 +193,11 @@
 
             if (bombs.includes(idx)) {
                 cells[idx].innerHTML = '<div class="mine"></div>';
+                cells[idx].style.background = "#451a1a";
                 endGame(false);
             } else {
                 cells[idx].innerHTML = '<div class="gem"></div>';
+                cells[idx].style.background = "#1d3a3a";
                 revealed++;
                 let m = calcMult(revealed);
                 document.getElementById('mult-val').innerText = `x${m.toFixed(3)}`;
@@ -211,9 +215,9 @@
         function endGame(win) {
             isGameActive = false;
             const cells = document.querySelectorAll('.grid-cell');
-            bombs.forEach(p => { if(cells[p].innerHTML==="") cells[p].innerHTML='<div class="mine" style="opacity:0.5"></div>'});
+            bombs.forEach(p => { if(cells[p].innerHTML==="") cells[p].innerHTML='<div class="mine" style="opacity:0.4"></div>'});
             document.getElementById('action-btn').innerText = "MƏRC ET";
-            document.getElementById('action-btn').className = "w-full bg-blue-600 py-4 rounded-xl font-bold text-lg uppercase";
+            document.getElementById('action-btn').className = "w-full bg-blue-600 py-4 rounded-xl font-extrabold text-lg active:scale-95 uppercase";
             updateUI();
         }
 
