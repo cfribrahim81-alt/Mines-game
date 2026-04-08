@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mines Pro - Full System</title>
+    <title>Mines Pro - Timer Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -57,6 +57,7 @@
         <div class="w-full bg-[#161d2a] p-4 rounded-xl border border-gray-800 mb-4">
             <div class="flex justify-between items-center mb-1">
                 <span class="text-[10px] text-gray-500 uppercase tracking-widest">Aktiv Balans</span> 
+                <span id="timer-display" class="text-red-500 font-mono text-[10px] font-bold"></span>
                 <span id="mult-val" class="text-green-400 font-bold text-sm">x0.00</span>
             </div>
             <div class="flex justify-between items-center">
@@ -102,7 +103,6 @@
         let currentBet = 0;
         const LIMIT_MS = 5 * 60 * 60 * 1000;
 
-        // Bütün Kod Siyahısı
         const codes3AZN = ["020374", "097896", "768152", "992441", "456073", "223985", "717245", "678993"];
         const codes5AZN = ["050485", "789402", "745629", "234719", "274916", "691047", "729273", "464936", "294744", "6792745", "7582913"];
         const codes7AZN = ["7828375", "6383947", "8374946", "3892846", "7296389", "2920374", "1002356", "1021375", "7388392"];
@@ -110,7 +110,7 @@
         window.onload = () => {
             updateUI();
             if (balance > 0) document.getElementById('go-to-game').classList.remove('hidden');
-            checkExpiry();
+            setInterval(updateTimer, 1000);
         };
 
         function save() {
@@ -119,11 +119,25 @@
             if(startTime) localStorage.setItem('mines_start_time', startTime);
         }
 
-        function checkExpiry() {
-            if (startTime && (Date.now() - startTime > LIMIT_MS)) {
-                balance = 0; startTime = null; localStorage.removeItem('mines_start_time');
-                save(); updateUI(); showNotify("5 saatlıq vaxt bitdi!", "red", 5000);
-            } else if(startTime) { setTimeout(checkExpiry, 30000); }
+        function updateTimer() {
+            if (!startTime) return;
+            let elapsed = Date.now() - startTime;
+            let remaining = LIMIT_MS - elapsed;
+
+            if (remaining <= 0) {
+                balance = 0; startTime = null;
+                localStorage.removeItem('mines_start_time');
+                save(); updateUI();
+                document.getElementById('timer-display').innerText = "";
+                showNotify("Vaxt bitdi! Balans sıfırlandı.", "red", 5000);
+                return;
+            }
+
+            let h = Math.floor(remaining / 3600000);
+            let m = Math.floor((remaining % 3600000) / 60000);
+            let s = Math.floor((remaining % 60000) / 1000);
+            document.getElementById('timer-display').innerText = 
+                `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
         function showNotify(text, type, duration) {
@@ -186,6 +200,7 @@
         }
 
         function calcMult(rev) {
+            // Hard Mode: 4-cü almazda xeyrə keçir
             if (rev === 0) return 0;
             if (rev === 1) return 0.872;
             if (rev === 2) return 0.925;
