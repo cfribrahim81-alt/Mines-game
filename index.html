@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mines Pro - Timer Edition</title>
+    <title>Mines Pro - Inactivity Penalty</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -57,7 +57,7 @@
         <div class="w-full bg-[#161d2a] p-4 rounded-xl border border-gray-800 mb-4">
             <div class="flex justify-between items-center mb-1">
                 <span class="text-[10px] text-gray-500 uppercase tracking-widest">Aktiv Balans</span> 
-                <span id="timer-display" class="text-red-500 font-mono text-[10px] font-bold"></span>
+                <span id="penalty-timer" class="text-orange-500 font-mono text-[9px] font-bold"></span>
                 <span id="mult-val" class="text-green-400 font-bold text-sm">x0.00</span>
             </div>
             <div class="flex justify-between items-center">
@@ -96,48 +96,61 @@
 
         let balance = parseFloat(localStorage.getItem('mines_balance')) || 0;
         let usedCodes = JSON.parse(localStorage.getItem('mines_used_codes')) || [];
-        let startTime = localStorage.getItem('mines_start_time');
+        let lastSeen = localStorage.getItem('mines_last_seen');
+        
         let isGameActive = false;
         let bombs = [];
         let revealed = 0;
         let currentBet = 0;
-        const LIMIT_MS = 5 * 60 * 60 * 1000;
+        const TEN_HOURS_MS = 10 * 60 * 60 * 1000; 
 
         const codes3AZN = ["020374", "097896", "768152", "992441", "456073", "223985", "717245", "678993"];
         const codes5AZN = ["050485", "789402", "745629", "234719", "274916", "691047", "729273", "464936", "294744", "6792745", "7582913"];
         const codes7AZN = ["7828375", "6383947", "8374946", "3892846", "7296389", "2920374", "1002356", "1021375", "7388392"];
 
         window.onload = () => {
+            checkPenalty();
             updateUI();
             if (balance > 0) document.getElementById('go-to-game').classList.remove('hidden');
-            setInterval(updateTimer, 1000);
+            setInterval(updatePenaltyUI, 1000);
         };
 
         function save() {
             localStorage.setItem('mines_balance', balance.toFixed(2));
             localStorage.setItem('mines_used_codes', JSON.stringify(usedCodes));
-            if(startTime) localStorage.setItem('mines_start_time', startTime);
+            localStorage.setItem('mines_last_seen', Date.now());
         }
 
-        function updateTimer() {
-            if (!startTime) return;
-            let elapsed = Date.now() - startTime;
-            let remaining = LIMIT_MS - elapsed;
+        function checkPenalty() {
+            if (lastSeen && balance > 0) {
+                let now = Date.now();
+                let diff = now - lastSeen;
+                if (diff > TEN_HOURS_MS) {
+                    let penalty = balance * 0.35;
+                    balance -= penalty;
+                    showNotify("10 saat aktiv olmadığınız üçün balansınızdan 35% azaldıldı!", "red", 6000);
+                }
+            }
+            // Hər girişdə vaxtı yeniləyirik ki, 10 saatlıq dövr təzədən başlasın
+            localStorage.setItem('mines_last_seen', Date.now());
+            lastSeen = Date.now();
+        }
 
-            if (remaining <= 0) {
-                balance = 0; startTime = null;
-                localStorage.removeItem('mines_start_time');
-                save(); updateUI();
-                document.getElementById('timer-display').innerText = "";
-                showNotify("Vaxt bitdi! Balans sıfırlandı.", "red", 5000);
+        function updatePenaltyUI() {
+            if (!lastSeen || balance <= 0) {
+                document.getElementById('penalty-timer').innerText = "";
                 return;
             }
-
-            let h = Math.floor(remaining / 3600000);
-            let m = Math.floor((remaining % 3600000) / 60000);
-            let s = Math.floor((remaining % 60000) / 1000);
-            document.getElementById('timer-display').innerText = 
-                `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            let remaining = TEN_HOURS_MS - (Date.now() - lastSeen);
+            if (remaining > 0) {
+                let h = Math.floor(remaining / 3600000);
+                let m = Math.floor((remaining % 3600000) / 60000);
+                let s = Math.floor((remaining % 60000) / 1000);
+                document.getElementById('penalty-timer').innerText = `Cəriməyə: ${h}:${m}:${s}`;
+            } else {
+                checkPenalty(); // Vaxt canlı olaraq bitsə, cəriməni tətbiq et
+                updateUI();
+            }
         }
 
         function showNotify(text, type, duration) {
@@ -159,7 +172,6 @@
 
             if (amount > 0) {
                 balance += amount; usedCodes.push(code);
-                if(!startTime) startTime = Date.now();
                 save(); updateUI();
                 document.getElementById('go-to-game').classList.remove('hidden');
                 showNotify(`Balans +${amount} AZN artırıldı!`, "green", 3000);
@@ -200,7 +212,6 @@
         }
 
         function calcMult(rev) {
-            // Hard Mode: 4-cü almazda xeyrə keçir
             if (rev === 0) return 0;
             if (rev === 1) return 0.872;
             if (rev === 2) return 0.925;
